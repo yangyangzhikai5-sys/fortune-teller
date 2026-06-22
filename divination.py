@@ -1008,17 +1008,59 @@ def full_divination(year: int, month: int, day: int, hour: int = 12,
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) < 4:
-        print("用法: python divination.py 年 月 日 [时] [分] [性别]")
-        print("示例: python divination.py 1990 5 15 8 0 男")
+    if len(sys.argv) >= 2 and sys.argv[1] in ("--liuyao", "-l", "--六爻", "六爻"):
+        from liuyao import do_liuyao_divination, run_interactive_divination
+        if len(sys.argv) >= 3 and sys.argv[2] == "--interactive":
+            run_interactive_divination()
+        else:
+            question = " ".join(sys.argv[2:]) if len(sys.argv) > 2 else "占事"
+            result = do_liuyao_divination(question)
+            print(result)
+    elif len(sys.argv) >= 2 and sys.argv[1] in ("--meihua", "-m", "--梅花", "梅花"):
+        # 梅花易数独立占卜
+        if len(sys.argv) < 4:
+            print("梅花易数占卜: python divination.py --meihua 年 月 日 [时] [分]")
+            print("示例: python divination.py --meihua 2026 6 15")
+            sys.exit(1)
+        y = int(sys.argv[2])
+        m = int(sys.argv[3])
+        d = int(sys.argv[4])
+        h = int(sys.argv[5]) if len(sys.argv) > 5 else 12
+        minute = int(sys.argv[6]) if len(sys.argv) > 6 else 0
+        from datetime import datetime as dt
+        meihua_info = plum_blossom_time_divination(dt(y, m, d, h, minute))
+        # 从HEXAGRAMS查找对应unicode
+        hex_unicode = {}
+        for k, v in HEXAGRAMS.items():
+            hex_unicode[v[0]] = v[1]
+        ben_name = meihua_info['本卦']['卦名']
+        bian_name = meihua_info['变卦']['卦名']
+        ben_uni = hex_unicode.get(ben_name, '')
+        bian_uni = hex_unicode.get(bian_name, '')
+        print(f"  起卦时间: {y}年{m}月{d}日 {h}:{minute:02d}")
+        print(f"  本卦: {ben_uni} {ben_name}")
+        print(f"  动爻: {meihua_info['动爻']}")
+        print(f"  变卦: {bian_uni} {bian_name}")
+        print(f"  体用: {meihua_info['体用']}")
+        print(f"  体用生克: {meihua_info['体用生克']}")
+        print(f"  卦辞: {meihua_info['本卦']['卦辞']}")
+    elif len(sys.argv) < 4:
+        print("用法:")
+        print("  八字命理: python divination.py 年 月 日 [时] [分] [性别]")
+        print("    示例: python divination.py 1990 5 15 8 0 男")
+        print("  六爻占卜: python divination.py --liuyao [占问事项]")
+        print("    示例: python divination.py --liuyao 丢了东西能找到吗")
+        print("    交互: python divination.py --liuyao --interactive")
+        print("  梅花易数: python divination.py --meihua 年 月 日 [时] [分]")
+        print("    示例: python divination.py --meihua 2026 6 15")
         sys.exit(1)
+    else:
+        y = int(sys.argv[1])
+        m = int(sys.argv[2])
+        d = int(sys.argv[3])
+        h = int(sys.argv[4]) if len(sys.argv) > 4 else 12
+        minute = int(sys.argv[5]) if len(sys.argv) > 5 else 0
+        gender = sys.argv[6] if len(sys.argv) > 6 else "男"
 
-    y = int(sys.argv[1])
-    m = int(sys.argv[2])
-    d = int(sys.argv[3])
-    h = int(sys.argv[4]) if len(sys.argv) > 4 else 12
-    minute = int(sys.argv[5]) if len(sys.argv) > 5 else 0
-    gender = sys.argv[6] if len(sys.argv) > 6 else "男"
-
-    result = full_divination(y, m, d, h, minute, gender)
-    print(result)
+        result = full_divination(y, m, d, h, minute, gender)
+        print(result)
